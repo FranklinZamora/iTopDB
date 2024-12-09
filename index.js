@@ -1,15 +1,16 @@
 const express = require('express');
 const mysql = require('mysql2');
+require('dotenv').config();
 
 const app = express();
 
 // Crea la conexión a la base de datos
 const connection = mysql.createConnection({
-  host: '127.0.0.1', // Nombre del servidor
-  user: 'root', // Usuario
-  password: '', // Sin contraseña
-  database: 'itop', // Nombre de la base de datos
-  port: 3306 // Puerto por defecto para MySQL
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
 });
 
 // Conecta a la base de datos
