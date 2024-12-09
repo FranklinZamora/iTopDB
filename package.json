@@ -1,0 +1,15 @@
+{
+  "name": "itop-copilot",
+  "version": "1.0.0",
+  "description": "API base de datos MySQL para copilot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
+  }
+}
