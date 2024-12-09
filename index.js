@@ -26,7 +26,7 @@ connection.connect((err) => {
 app.get('/tickets', (req, res) => {
   connection.query('SELECT * FROM ticket', (err, results) => {
     if (err) {
-      res.status(500).send('Error en la consulta a la base de datos');
+      res.status(500).send('Error en la consulta a la base de datos: ' + err.message);
       return;
     }
     res.json(results);
