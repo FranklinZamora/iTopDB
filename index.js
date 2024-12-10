@@ -29,7 +29,12 @@ app.get('/tickets', (req, res) => {
       res.status(500).send('Error en la consulta a la base de datos: ' + err.message);
       return;
     }
-    res.json(results);
+    // Verifica si hay resultados y devuelve el primer elemento
+    if (results.length > 0) {
+      res.json(results[0]);
+    } else {
+      res.status(404).send('No se encontraron tickets');
+    }
   });
 });
 
