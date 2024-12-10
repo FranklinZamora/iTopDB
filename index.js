@@ -30,7 +30,8 @@ app.get('/tickets', (req, res) => {
       t.title, t.description, t.description_format, t.start_date, t.end_date, 
       t.last_update, t.close_date, t.private_log, t.private_log_index, t.finalclass,
       o.name AS organization_name,
-      c.name AS caller_name
+      c.name AS caller_name,
+      c.email AS caller_email
     FROM 
       ticket t
     LEFT JOIN 
