@@ -22,8 +22,13 @@ connection.connect((err) => {
   console.log('Conectado a la base de datos como id ' + connection.threadId);
 });
 
-// Ruta para obtener todos los tickets
+// Ruta para obtener un ticket por referencia
 app.get('/tickets', (req, res) => {
+  const ref = req.query.ref;
+  if (!ref) {
+    return res.status(400).send('El parámetro "ref" es requerido');
+  }
+
   const query = `
     SELECT 
       t.id, t.operational_status, t.ref, t.org_id, t.caller_id, t.team_id, t.agent_id, 
@@ -38,9 +43,11 @@ app.get('/tickets', (req, res) => {
       organization o ON t.org_id = o.id
     LEFT JOIN 
       contact c ON t.caller_id = c.id
+    WHERE 
+      t.ref = ?
   `;
 
-  connection.query(query, (err, results) => {
+  connection.query(query, [ref], (err, results) => {
     if (err) {
       res.status(500).send('Error en la consulta a la base de datos: ' + err.message);
       return;
@@ -49,7 +56,7 @@ app.get('/tickets', (req, res) => {
     if (results.length > 0) {
       res.json(results[0]);
     } else {
-      res.status(404).send('No se encontraron tickets');
+      res.status(404).send('No se encontró el ticket con la referencia proporcionada');
     }
   });
 });
