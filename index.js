@@ -4,6 +4,9 @@ const mysql = require('mysql2');
 
 const app = express();
 
+// Middleware para manejar JSON
+app.use(express.json());
+
 // Crea la conexión a la base de datos
 const connection = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -54,10 +57,72 @@ app.get('/tickets', (req, res) => {
     }
     // Verifica si hay resultados y devuelve el primer elemento
     if (results.length > 0) {
-      res.json(results[0]);
+      const ticket = results[0];
+      // Eliminar los campos no deseados
+      delete ticket.operational_status;
+      delete ticket.description_format;
+      delete ticket.end_date;
+      delete ticket.close_date;
+      delete ticket.private_log;
+      delete ticket.private_log_index;
+      delete ticket.finalclass;
+      res.json(ticket);
     } else {
       res.status(404).send('No se encontró el ticket con la referencia proporcionada');
     }
+  });
+});
+
+// Ruta para crear un nuevo ticket
+app.post('/tickets', (req, res) => {
+  const { operational_status, ref, org_name, caller_name, team_name, agent_name, title, description, description_format, start_date, end_date, last_update, close_date, private_log, private_log_index, finalclass } = req.body;
+
+  // Buscar los IDs correspondientes
+  const getIdQuery = (table, column, value) => `SELECT id FROM ${table} WHERE ${column} = ? LIMIT 1`;
+
+  const getId = (query, value) => {
+    return new Promise((resolve, reject) => {
+      connection.query(query, [value], (err, results) => {
+        if (err) {
+          return reject(err);
+        }
+        if (results.length > 0) {
+          resolve(results[0].id);
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  };
+
+  Promise.all([
+    getId(getIdQuery('organization', 'name', org_name), org_name),
+    getId(getIdQuery('contact', 'name', caller_name), caller_name),
+    getId(getIdQuery('team', 'name', team_name), team_name),
+    getId(getIdQuery('agent', 'name', agent_name), agent_name)
+  ])
+  .then(([org_id, caller_id, team_id, agent_id]) => {
+    if (!org_id || !caller_id || !team_id || !agent_id) {
+      return res.status(400).send('No se encontraron los IDs correspondientes para los nombres proporcionados');
+    }
+
+    const query = `
+      INSERT INTO ticket (operational_status, ref, org_id, caller_id, team_id, agent_id, title, description, description_format, start_date, end_date, last_update, close_date, private_log, private_log_index, finalclass)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [operational_status, ref, org_id, caller_id, team_id, agent_id, title, description, description_format, start_date, end_date, last_update, close_date, private_log, private_log_index, finalclass];
+
+    connection.query(query, values, (err, results) => {
+      if (err) {
+        res.status(500).send('Error al crear el ticket: ' + err.message);
+        return;
+      }
+      res.status(201).send('Ticket creado exitosamente');
+    });
+  })
+  .catch(err => {
+    res.status(500).send('Error al buscar los IDs: ' + err.message);
   });
 });
 
