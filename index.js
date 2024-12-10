@@ -24,7 +24,22 @@ connection.connect((err) => {
 
 // Ruta para obtener todos los tickets
 app.get('/tickets', (req, res) => {
-  connection.query('SELECT * FROM ticket', (err, results) => {
+  const query = `
+    SELECT 
+      t.id, t.operational_status, t.ref, t.org_id, t.caller_id, t.team_id, t.agent_id, 
+      t.title, t.description, t.description_format, t.start_date, t.end_date, 
+      t.last_update, t.close_date, t.private_log, t.private_log_index, t.finalclass,
+      o.name AS organization_name,
+      c.name AS caller_name
+    FROM 
+      ticket t
+    LEFT JOIN 
+      organization o ON t.org_id = o.id
+    LEFT JOIN 
+      contact c ON t.caller_id = c.id
+  `;
+
+  connection.query(query, (err, results) => {
     if (err) {
       res.status(500).send('Error en la consulta a la base de datos: ' + err.message);
       return;
